@@ -11,8 +11,9 @@ class MessageSerializer(serializers.ModelSerializer):
         fields = ('message', )
 
 class MessageSerializer_FromTo(serializers.Serializer):
-    sender = serializers.EmailField()
-    recipient = serializers.EmailField()
+    sender = serializers.EmailField(write_only = True)
+    recipient = serializers.EmailField(write_only = True)
+    message = serializers.CharField(read_only=True, max_length = 500)
 
     # Handle POST requests
     def create(self, validated_data):
