@@ -10,18 +10,33 @@ class MessageSerializer(serializers.ModelSerializer):
         model = Message
         fields = ('message', )
 
-class MessageSerializer_FromTo(serializers.Serializer):
-    sender = serializers.EmailField()
-    recipient = serializers.EmailField()
+class MessageSerializer_FromTo(serializers.ModelSerializer):
+    #sender = serializers.EmailField()
+    #recipient = serializers.EmailField()
+
+    class Meta:
+        model = Message
+        fields = ('sender', 'recipient')
 
     # Handle POST requests
-    def create(self, validated_data):
-        message = "Message from <{sender}> to <{recipient}>".format(**validated_data)
-        return Message.objects.create(message=message)
+    def to_representation(self, validated_data):
+        return {
+            'message': "Message from <{sender}> to <{recipient}>".format(**validated_data)
+        }
 
 class MessageViewSet(viewsets.ModelViewSet):
+    model = Message
     queryset = Message.objects.all().order_by('-pk')
-    serializer_class = MessageSerializer
+    #serializer_class = MessageSerializer
+
+    def get_serializer_class(self):
+        serializers_class_map = {
+            'default': MessageSerializer,
+            'create': MessageSerializer_FromTo,
+        }
+        serializer_class = serializers_class_map.get(self.action, serializers_class_map['default'])
+        print("get_serializer_class() -> %r" % serializer_class)
+        return serializers_class
 
     # Handle POST requests differently
     def create(self, request, format=None):
